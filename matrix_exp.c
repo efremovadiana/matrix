@@ -12,7 +12,7 @@ matrix *matrix_exp(const matrix *A, double eps) {
     size_t n = matrix_rows(A);
 
     if (n != matrix_cols(A)) {
-        fprintf(stderr, "Матрица должна быть квадратной\n");
+        fprintf(stderr, "РњР°С‚СЂРёС†Р° РґРѕР»Р¶РЅР° Р±С‹С‚СЊ РєРІР°РґСЂР°С‚РЅРѕР№\n");
         return NULL;
     }
 
