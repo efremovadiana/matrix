@@ -1,0 +1,38 @@
+# depslib dependency file v1.0
+1771790853 source:d:\практикум на эвм\matrix\main.c
+	"matrix.h"
+	"matrix_exp.h"
+	"matrix_gauss.h"
+	<stdio.h>
+	<math.h>
+	<locale.h>
+
+1771789450 source:d:\практикум на эвм\matrix\matrix_exp.c
+	"matrix.h"
+	<math.h>
+	<stdlib.h>
+	<stdio.h>
+
+1771790960 source:d:\практикум на эвм\matrix\matrix_gauss.c
+	"matrix.h"
+	<math.h>
+	<stdlib.h>
+	<stdio.h>
+
+1771789235 source:d:\практикум на эвм\matrix\matrix.c
+	"matrix.h"
+	<stdlib.h>
+	<string.h>
+	<math.h>
+	<stdio.h>
+
+1771788644 d:\практикум на эвм\matrix\matrix.h
+	<stddef.h>
+	<stdio.h>
+
+1771782113 d:\практикум на эвм\matrix\matrix_exp.h
+	"matrix.h"
+
+1771789843 d:\практикум на эвм\matrix\matrix_gauss.h
+	"matrix.h"
+
