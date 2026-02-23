@@ -1,52 +1,52 @@
 #ifndef MATRIX_H_INCLUDED
 #define MATRIX_H_INCLUDED
 
-#include <stddef.h>        // Для типа size_t (беззнаковый целый тип)
-#include <stdio.h>          // Для FILE* (нужно для вывода)
+#include <stddef.h>        // Р”Р»СЏ С‚РёРїР° size_t (Р±РµР·Р·РЅР°РєРѕРІС‹Р№ С†РµР»С‹Р№ С‚РёРї)
+#include <stdio.h>          // Р”Р»СЏ FILE* (РЅСѓР¶РЅРѕ РґР»СЏ РІС‹РІРѕРґР°)
 
 
 typedef struct matrix matrix;
 
-// новая матрица, w - количество столбцов, h - количество строк
+// РЅРѕРІР°СЏ РјР°С‚СЂРёС†Р°, w - РєРѕР»РёС‡РµСЃС‚РІРѕ СЃС‚РѕР»Р±С†РѕРІ, h - РєРѕР»РёС‡РµСЃС‚РІРѕ СЃС‚СЂРѕРє
 matrix *matrix_alloc(size_t w, size_t h);
 
 void matrix_free(matrix *m);
 
-// копирует матрицу
+// РєРѕРїРёСЂСѓРµС‚ РјР°С‚СЂРёС†Сѓ
 matrix *matrix_copy(const matrix *m);
 
-// получение указателя на элемент
+// РїРѕР»СѓС‡РµРЅРёРµ СѓРєР°Р·Р°С‚РµР»СЏ РЅР° СЌР»РµРјРµРЅС‚
 double *matrix_ptr(matrix *m, size_t i, size_t j);
 
-//константный доступ
+//РєРѕРЅСЃС‚Р°РЅС‚РЅС‹Р№ РґРѕСЃС‚СѓРї
 const double *matrix_cptr(const matrix *m, size_t i, size_t j);
 
-// количество строк матрицы, m - указатель на матрицу
+// РєРѕР»РёС‡РµСЃС‚РІРѕ СЃС‚СЂРѕРє РјР°С‚СЂРёС†С‹, m - СѓРєР°Р·Р°С‚РµР»СЊ РЅР° РјР°С‚СЂРёС†Сѓ
 size_t matrix_rows(const matrix *m);
 
-// количество столбцов матрицы, m - указатель на матрицу
+// РєРѕР»РёС‡РµСЃС‚РІРѕ СЃС‚РѕР»Р±С†РѕРІ РјР°С‚СЂРёС†С‹, m - СѓРєР°Р·Р°С‚РµР»СЊ РЅР° РјР°С‚СЂРёС†Сѓ
 size_t matrix_cols(const matrix *m);
 
 matrix *matrix_alloc_id(size_t n);
 
 matrix *matrix_assign(matrix *m1, const matrix *m2);
 
-// сложение матриц
+// СЃР»РѕР¶РµРЅРёРµ РјР°С‚СЂРёС†
 int matrix_add(matrix *m1, const matrix *m2);
 
-// умножение на число
+// СѓРјРЅРѕР¶РµРЅРёРµ РЅР° С‡РёСЃР»Рѕ
 void matrix_smul(matrix *m, double d);
 
-// деление на число
+// РґРµР»РµРЅРёРµ РЅР° С‡РёСЃР»Рѕ
 void matrix_sdiv(matrix *m, double d);
 
-// вычисляет норму матрицы
+// РІС‹С‡РёСЃР»СЏРµС‚ РЅРѕСЂРјСѓ РјР°С‚СЂРёС†С‹
 double matrix_norm(const matrix *m);
 
-// умножение двух матриц, res - матрица результата, a, b - матрицы
+// СѓРјРЅРѕР¶РµРЅРёРµ РґРІСѓС… РјР°С‚СЂРёС†, res - РјР°С‚СЂРёС†Р° СЂРµР·СѓР»СЊС‚Р°С‚Р°, a, b - РјР°С‚СЂРёС†С‹
 int matrix_multiply(matrix *res, const matrix *a, const matrix *b);
 
-// вывод
+// РІС‹РІРѕРґ
 void matrix_print(const matrix *m, const char *format);
 
 #endif // MATRIX_H_INCLUDED
