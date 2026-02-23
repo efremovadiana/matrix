@@ -3,10 +3,11 @@
 
 #include "matrix.h"
 
-// решает СЛУ A*X = B, где A - матрица коэффициентов, квадратная невырожденная, B - матрица правых частей
+// СЂРµС€Р°РµС‚ РЎР›РЈ A*X = B, РіРґРµ A - РјР°С‚СЂРёС†Р° РєРѕСЌС„С„РёС†РёРµРЅС‚РѕРІ, РєРІР°РґСЂР°С‚РЅР°СЏ РЅРµРІС‹СЂРѕР¶РґРµРЅРЅР°СЏ, B - РјР°С‚СЂРёС†Р° РїСЂР°РІС‹С… С‡Р°СЃС‚РµР№
 matrix *matrix_solve_gauss(const matrix *A, const matrix *B);
 
-// проверка решения
+// РїСЂРѕРІРµСЂРєР° СЂРµС€РµРЅРёСЏ
 double matrix_check_solution(const matrix *A, const matrix *B, const matrix *X);
 
 #endif // MATRIX_GAUSS_H_INCLUDED
+
