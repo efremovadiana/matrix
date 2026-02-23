@@ -206,7 +206,7 @@ int matrix_multiply(matrix *res, const matrix *a, const matrix *b) {
 
 void matrix_print(const matrix *m, const char *format) {
     if (m == NULL) {
-        printf("NULL матрица\n");
+        printf("NULL РјР°С‚СЂРёС†Р°\n");
         return;
     }
 
