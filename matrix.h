@@ -1,8 +1,7 @@
 #ifndef MATRIX_H_INCLUDED
 #define MATRIX_H_INCLUDED
 
-#include <stddef.h>        // Для типа size_t (беззнаковый целый тип)
-#include <stdio.h>          // Для FILE* (нужно для вывода)
+#include <stddef.h> 
 
 
 typedef struct matrix matrix;
@@ -50,3 +49,4 @@ int matrix_multiply(matrix *res, const matrix *a, const matrix *b);
 void matrix_print(const matrix *m, const char *format);
 
 #endif // MATRIX_H_INCLUDED
+
