@@ -3,12 +3,11 @@
 #include "matrix_gauss.h"
 #include <stdio.h>
 #include <math.h>
-#include <locale.h>
+#include "locale.h"
 
 
 void test_matrix_exp(void) {
-
-    printf("Тест 1: Матричная экспонента\n");
+    printf("ТЕСТ 1: Матричная экспонента\n");
 
     matrix *A = matrix_alloc_id(3);
     *matrix_ptr(A, 0, 0) = 1.0;
@@ -19,7 +18,6 @@ void test_matrix_exp(void) {
     matrix_print(A, "%8.3f");
 
     double eps = 1e-10;
-    printf("\nВычисление exp(A) с точностью %g...\n", eps);
 
     matrix *expA = matrix_exp(A, eps);
 
@@ -43,8 +41,7 @@ void test_matrix_exp(void) {
 
 
 void test_gauss_simple(void) {
-
-    printf("Тест 2: Метод Гаусса (одна правая часть)\n");
+    printf("\nТЕСТ 2: Метод Гаусса (Одна правая часть)\n");
 
     matrix *A = matrix_alloc(3, 3);
     *matrix_ptr(A, 0, 0) = 2.0;  *matrix_ptr(A, 0, 1) = 1.0;  *matrix_ptr(A, 0, 2) = -1.0;
@@ -61,7 +58,8 @@ void test_gauss_simple(void) {
     printf("\nВектор B:\n");
     matrix_print(B, "%6.2f");
 
-    matrix *X = matrix_solve_gauss(A, B);
+
+    matrix *X = matrix_solve_gauss(A, B, 0.0);
 
     if (X != NULL) {
         printf("\nРешение X:\n");
@@ -74,7 +72,7 @@ void test_gauss_simple(void) {
 
         matrix_free(X);
     } else {
-        printf("\nОшибка: не удалось решить систему\n");
+        printf("\nОШИБКА: не удалось решить систему\n");
     }
 
     matrix_free(A);
@@ -85,7 +83,7 @@ void test_gauss_simple(void) {
 
 void test_gauss_multi(void) {
 
-    printf("Тест 3: Метод Гаусса (несколько правых частей)\n");
+    printf("\nТЕСТ 3: Метод Гаусса (Несколько правых частей)\n");
 
     matrix *A = matrix_alloc(2, 2);
     *matrix_ptr(A, 0, 0) = 1.0;  *matrix_ptr(A, 0, 1) = 2.0;
@@ -97,10 +95,10 @@ void test_gauss_multi(void) {
 
     printf("\nМатрица A:\n");
     matrix_print(A, "%6.2f");
-    printf("\nМатрица B:\n");
+    printf("\nМатрица B (два столбца - две системы):\n");
     matrix_print(B, "%6.2f");
 
-    matrix *X = matrix_solve_gauss(A, B);
+    matrix *X = matrix_solve_gauss(A, B, 0.0);
 
     if (X != NULL) {
         printf("\nРешение X (по столбцам):\n");
@@ -111,7 +109,7 @@ void test_gauss_multi(void) {
 
         matrix_free(X);
     } else {
-        printf("\nОшибка: не удалось решить систему\n");
+        printf("\nОШИБКА: не удалось решить систему\n");
     }
 
     matrix_free(A);
@@ -122,7 +120,7 @@ void test_gauss_multi(void) {
 
 void test_singular(void) {
 
-    printf("Тест 4: Вырожденная матрица\n");
+    printf("\nТЕСТ 4: Вырожденная матрица\n");
 
     matrix *A = matrix_alloc(2, 2);
     *matrix_ptr(A, 0, 0) = 1.0;  *matrix_ptr(A, 0, 1) = 2.0;
@@ -135,13 +133,12 @@ void test_singular(void) {
     printf("\nМатрица A (вырожденная):\n");
     matrix_print(A, "%6.2f");
 
-
-    matrix *X = matrix_solve_gauss(A, B);
+    matrix *X = matrix_solve_gauss(A, B, 0.0);
 
     if (X == NULL) {
         printf("\nОжидаемая ошибка: матрица вырождена - решение невозможно\n");
     } else {
-        printf("\nОшибка: получено решение для вырожденной матрицы\n");
+        printf("\nОШИБКА: получено решение для вырожденной матрицы\n");
         matrix_free(X);
     }
 
@@ -151,11 +148,61 @@ void test_singular(void) {
 }
 
 
+void test_special_system(void) {
+
+    printf("\nТЕСТ 5: Дополнительная система\n");
+    printf("0 0 1   1\n");
+    printf("0 1 0   2\n");
+    printf("1 0 0   3\n");
+
+    matrix *A = matrix_alloc(3, 3);
+    *matrix_ptr(A, 0, 0) = 0; *matrix_ptr(A, 0, 1) = 0; *matrix_ptr(A, 0, 2) = 1;
+    *matrix_ptr(A, 1, 0) = 0; *matrix_ptr(A, 1, 1) = 1; *matrix_ptr(A, 1, 2) = 0;
+    *matrix_ptr(A, 2, 0) = 1; *matrix_ptr(A, 2, 1) = 0; *matrix_ptr(A, 2, 2) = 0;
+
+    matrix *B = matrix_alloc(1, 3);
+    *matrix_ptr(B, 0, 0) = 1;
+    *matrix_ptr(B, 1, 0) = 2;
+    *matrix_ptr(B, 2, 0) = 3;
+
+    printf("\nМатрица A:\n");
+    matrix_print(A, "%6.2f");
+    printf("\nВектор B:\n");
+    matrix_print(B, "%6.2f");
+
+    printf("\nОжидаемое решение: x = 3, y = 2, z = 1\n");
+
+    matrix *X = matrix_solve_gauss(A, B, 0.0);
+
+    if (X != NULL) {
+        printf("\nПолученное решение X:\n");
+        matrix_print(X, "%10.6f");
+
+        double norm = matrix_check_solution(A, B, X);
+        printf("\nНевязка ||AX - B|| = %g\n", norm);
+
+        if (norm < 1e-10) {
+            printf("\nРешение верно (невязка близка к нулю)\n");
+        } else {
+            printf("\nРешение неверно (невязка слишком велика)\n");
+        }
+
+        matrix_free(X);
+    } else {
+        printf("\nОШИБКА: не удалось решить систему\n");
+    }
+
+    matrix_free(A);
+    matrix_free(B);
+    printf("\nТест 5 завершён.\n");
+}
+
+
 void test_memory_leaks(void) {
 
-    printf("Тест 5: Проверка управления памятью\n");
+    printf("\nТЕСТ 6: Проверка управления памятью\n");
 
-    printf("Создание и освобождение нескольких матриц\n");
+    printf("\nСоздание и освобождение нескольких матриц\n");
 
     matrix *m1 = matrix_alloc(3, 3);
     matrix *m2 = matrix_alloc(4, 4);
@@ -167,7 +214,7 @@ void test_memory_leaks(void) {
         }
     }
 
-    printf("m1 (3x3):\n");
+    printf("\nm1 (3x3):\n");
     matrix_print(m1, "%5.0f");
 
     matrix_free(m1);
@@ -175,24 +222,22 @@ void test_memory_leaks(void) {
     matrix_free(m3);
 
     printf("\nВсе матрицы освобождены.\n");
-    printf("\nТест 5 завершён.\n");
+    printf("\nТест 6 завершён.\n");
 }
 
 int main(void) {
 
     setlocale(LC_ALL, "Russian");
 
-    printf("Решение двух задач:\n");
-    printf("1. Матричная экспонента\n");
-    printf("2. Метод Гаусса для СЛАУ\n");
-
     test_matrix_exp();
     test_gauss_simple();
     test_gauss_multi();
     test_singular();
+    test_special_system();
     test_memory_leaks();
 
     printf("Все тесты завершены\n");
+
     printf("\nДля проверки утечек памяти:\n");
     printf("valgrind --leak-check=full ./matrix_tasks\n");
 
