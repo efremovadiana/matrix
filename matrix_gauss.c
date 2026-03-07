@@ -1,46 +1,35 @@
 #include "matrix.h"
 #include <math.h>
-#include <stdlib.h>
-#include <stdio.h>
 
-// функция умножения матриц
-static int gauss_matrix_multiply(matrix *res, const matrix *a, const matrix *b) {
-    if (res == NULL || a == NULL || b == NULL) return -1;
-
-    size_t a_rows = matrix_rows(a);
-    size_t a_cols = matrix_cols(a);
-    size_t b_rows = matrix_rows(b);
-    size_t b_cols = matrix_cols(b);
-    size_t res_rows = matrix_rows(res);
-    size_t res_cols = matrix_cols(res);
-
-    if (a_cols != b_rows) return -1;
-    if (res_rows != a_rows) return -1;
-    if (res_cols != b_cols) return -1;
-
-    for (size_t i = 0; i < a_rows; i++) {
-        for (size_t j = 0; j < b_cols; j++) {
-            double sum = 0.0;
-            for (size_t k = 0; k < a_cols; k++) {
-                sum += *matrix_cptr(a, i, k) * *matrix_cptr(b, k, j);
-            }
-            *matrix_ptr(res, i, j) = sum;
-        }
-    }
-
-    return 0;
-}
-
-// Поиск строки с максимальным элементом в столбе
-static size_t find_pivot_row(const matrix *A, size_t col, size_t start) {
+/* Поиск главного элемента, А - матрица, col - индекс столбца,
+ *start - начальна строка, max_val - указатель для сохранения максимального значения
+ */
+static size_t find_pivot(const matrix *A, size_t col, size_t start, double *max_val) {
     size_t pivot = start;
-    double max_val = fabs(*matrix_cptr(A, start, col));
+    *max_val = fabs(*matrix_cptr(A, start, col));
+
+    double scale = 0.0;
+    for (size_t j = 0; j < matrix_cols(A); j++) {
+        scale += fabs(*matrix_cptr(A, start, j));
+    }
+    if (scale == 0.0) scale = 1.0;
+
+    double scaled_max = *max_val / scale;
 
     size_t rows = matrix_rows(A);
     for (size_t i = start + 1; i < rows; i++) {
         double val = fabs(*matrix_cptr(A, i, col));
-        if (val > max_val) {
-            max_val = val;
+
+        scale = 0.0;
+        for (size_t j = 0; j < matrix_cols(A); j++) {
+            scale += fabs(*matrix_cptr(A, i, j));
+        }
+        if (scale == 0.0) scale = 1.0;
+
+        double scaled = val / scale;
+        if (scaled > scaled_max) {
+            scaled_max = scaled;
+            *max_val = val;
             pivot = i;
         }
     }
@@ -48,89 +37,57 @@ static size_t find_pivot_row(const matrix *A, size_t col, size_t start) {
     return pivot;
 }
 
-// Перестановка двух строк матрицы
-static void swap_rows(matrix *m, size_t r1, size_t r2) {
-    if (r1 == r2) return;
+matrix *matrix_solve_gauss(const matrix *A, const matrix *B, double tol) {
 
-    size_t cols = matrix_cols(m);
-    for (size_t j = 0; j < cols; j++) {
-        double tmp = *matrix_ptr(m, r1, j);
-        *matrix_ptr(m, r1, j) = *matrix_ptr(m, r2, j);
-        *matrix_ptr(m, r2, j) = tmp;
-    }
-}
-
-
-matrix *matrix_solve_gauss(const matrix *A, const matrix *B) {
-
-    if (A == NULL || B == NULL) {
-        fprintf(stderr, "Ошибка: NULL указатель\n");
-        return NULL;
-    }
+    if (!A || !B) return NULL;
 
     size_t n = matrix_rows(A);
+    size_t rhs_count = matrix_cols(B);
 
-
-    if (n != matrix_cols(A)) {
-        fprintf(stderr, "Ошибка: матрица A должна быть квадратной\n");
+    if (n != matrix_cols(A) || n != matrix_rows(B)) {
         return NULL;
     }
 
-
-    if (n != matrix_rows(B)) {
-        fprintf(stderr, "Ошибка: разное количество строк в A и B\n");
-        return NULL;
+    if (tol <= 0.0) {
+        double normA = matrix_norm(A);
+        tol = (normA > 0.0) ? normA * 1e-15 : 1e-15;
     }
-
-    size_t m = matrix_cols(B);
-
 
     matrix *A_copy = matrix_copy(A);
     matrix *X = matrix_copy(B);
 
-    if (A_copy == NULL || X == NULL) {
+    if (!A_copy || !X) {
         matrix_free(A_copy);
         matrix_free(X);
         return NULL;
     }
 
     for (size_t k = 0; k < n; k++) {
+        double pivot_val;
+        size_t pivot = find_pivot(A_copy, k, k, &pivot_val);
 
-        size_t pivot = find_pivot_row(A_copy, k, k);
-        double pivot_val = *matrix_cptr(A_copy, pivot, k);
-
-        if (fabs(pivot_val) < 1e-15) {
-            fprintf(stderr, "Ошибка: матрица вырождена\n");
+        if (pivot_val <= tol) {
             matrix_free(A_copy);
             matrix_free(X);
             return NULL;
         }
 
         if (pivot != k) {
-            swap_rows(A_copy, k, pivot);
-            swap_rows(X, k, pivot);
-            pivot_val = *matrix_cptr(A_copy, k, k);
+            matrix_swap_rows(A_copy, k, pivot);
+            matrix_swap_rows(X, k, pivot);
         }
 
-
-        for (size_t j = k; j < n; j++) {
-            *matrix_ptr(A_copy, k, j) /= pivot_val;
-        }
-        for (size_t j = 0; j < m; j++) {
-            *matrix_ptr(X, k, j) /= pivot_val;
-        }
+        double inv_pivot = 1.0 / pivot_val;
+        matrix_row_mul(A_copy, k, inv_pivot);
+        matrix_row_mul(X, k, inv_pivot);
 
 
         for (size_t i = k + 1; i < n; i++) {
             double factor = *matrix_cptr(A_copy, i, k);
-            if (fabs(factor) < 1e-15) continue;
+            if (fabs(factor) <= tol) continue;
 
-            for (size_t j = k; j < n; j++) {
-                *matrix_ptr(A_copy, i, j) -= factor * *matrix_cptr(A_copy, k, j);
-            }
-            for (size_t j = 0; j < m; j++) {
-                *matrix_ptr(X, i, j) -= factor * *matrix_cptr(X, k, j);
-            }
+            matrix_row_add(A_copy, i, k, -factor);
+            matrix_row_add(X, i, k, -factor);
         }
     }
 
@@ -138,9 +95,10 @@ matrix *matrix_solve_gauss(const matrix *A, const matrix *B) {
     for (size_t k = n; k-- > 0;) {
         for (size_t i = 0; i < k; i++) {
             double factor = *matrix_cptr(A_copy, i, k);
-            if (fabs(factor) < 1e-15) continue;
+            if (fabs(factor) <= tol) continue;
 
-            for (size_t j = 0; j < m; j++) {
+
+            for (size_t j = 0; j < rhs_count; j++) {
                 *matrix_ptr(X, i, j) -= factor * *matrix_cptr(X, k, j);
             }
         }
@@ -150,38 +108,32 @@ matrix *matrix_solve_gauss(const matrix *A, const matrix *B) {
     return X;
 }
 
+
 double matrix_check_solution(const matrix *A, const matrix *B, const matrix *X) {
+    if (!A || !B || !X) return -1.0;
 
-    if (A == NULL || B == NULL || X == NULL) {
+    size_t n = matrix_rows(A);
+    size_t m = matrix_cols(B);
+
+    if (matrix_cols(A) != matrix_rows(X) ||
+        n != matrix_rows(B) ||
+        m != matrix_cols(X)) {
         return -1.0;
     }
 
-    if (matrix_rows(A) != matrix_rows(B) ||
-        matrix_cols(A) != matrix_rows(X) ||
-        matrix_cols(B) != matrix_cols(X)) {
-        return -1.0;
-    }
+    matrix *AX = matrix_alloc(m, n);
+    if (!AX) return -1.0;
 
-    matrix *AX = matrix_alloc(matrix_cols(X), matrix_rows(A));
-    if (AX == NULL) {
-        return -1.0;
-    }
-
-    if (gauss_matrix_multiply(AX, A, X) != 0) {
+    if (matrix_mul(AX, A, X) != 0) {
         matrix_free(AX);
         return -1.0;
     }
 
     double max_diff = 0.0;
-    size_t ax_rows = matrix_rows(AX);
-    size_t ax_cols = matrix_cols(AX);
-
-    for (size_t i = 0; i < ax_rows; i++) {
-        for (size_t j = 0; j < ax_cols; j++) {
+    for (size_t i = 0; i < n; i++) {
+        for (size_t j = 0; j < m; j++) {
             double diff = fabs(*matrix_cptr(AX, i, j) - *matrix_cptr(B, i, j));
-            if (diff > max_diff) {
-                max_diff = diff;
-            }
+            if (diff > max_diff) max_diff = diff;
         }
     }
 
